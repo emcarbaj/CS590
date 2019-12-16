@@ -1,0 +1,517 @@
+#CS590 Final homework
+#Esdras Manuel Carbajal.
+
+# Uploading my libraries 
+library(data.table) 
+library(plyr)
+library(scales)
+library(RColorBrewer)
+library(gridExtra)
+library(igraph)
+library(magrittr)
+library(psych)
+library(car)
+library(HH)
+library(agricolae)
+library(multcomp)
+library(readr)
+library(foreign)
+library(multcompView)
+library(dplyr)
+library(ggpubr)
+library(lmtest)
+library(rcompanion)
+library(emmeans)
+library(lsmeans)
+library(ggplot2)
+
+# Uploading my data from CSV
+babygrass <- read.csv("CAT.csv")
+babygrass
+
+# Changing Babygrass to Toddlergrass, this way I do not compromise my initial data set
+Toddlergrass <- babygrass
+Toddlergrass
+
+#Traying to change head of weight (g). In this case I had to change parenthesis to dots.This because there are some problem to manipulate data when you have parethesis
+colnames(Toddlergrass)[colnames(Toddlergrass)=="Weight..g."] <- "Weightgrams"
+Toddlergrass
+
+#Checking for the structure of the data frame.
+str(Toddlergrass)
+
+#Checking for the columns of the data frame.
+colnames(Toddlergrass)
+
+# Statistical summary of data
+summary(Toddlergrass)
+
+#Transforming mising data to NA
+Toddlergrass[ Toddlergrass == "." ] <- NA
+Toddlergrass
+
+# Rename the set of data to Teenegergrass. Just to make sure I do not loose anything. 
+Teenagergrass <- Toddlergrass
+Teenagergrass
+
+str(Teenagergrass)
+
+#Checking for the columns of the data frame.
+colnames(Teenagergrass)
+
+# Changing to factors and numeric as needed
+Teenagergrass$Location<-as.factor(Teenagergrass$Location)
+Teenagergrass$Rep<-as.factor(Teenagergrass$Rep)
+Teenagergrass$Entry<-as.factor(Teenagergrass$Entry)
+Teenagergrass$Year<-as.factor(Teenagergrass$Year)
+Teenagergrass$Establishment<-as.numeric(Teenagergrass$Establishment)
+Teenagergrass$Flower<-as.numeric(Teenagergrass$Flower)
+Teenagergrass$Weightgrams<-as.numeric(Teenagergrass$Weightgrams)
+Teenagergrass$WK<-as.numeric(Teenagergrass$WK)
+Teenagergrass$TQ<-as.numeric(Teenagergrass$TQ)
+Teenagergrass$Density<-as.numeric(Teenagergrass$Density)
+Teenagergrass$Color<-as.numeric(Teenagergrass$Color)
+Teenagergrass$Texture<-as.numeric(Teenagergrass$Texture)
+Teenagergrass$Uniformity<-as.numeric(Teenagergrass$Uniformity)
+Teenagergrass$Drought<-as.numeric(Teenagergrass$Drought)
+Teenagergrass$Coverage<-as.numeric(Teenagergrass$Coverage)
+Teenagergrass$FC<-as.numeric(Teenagergrass$FC)
+
+#making sure it changed.
+str(Teenagergrass)
+
+# Factorial ANOVA
+TQtotal<-aov(TQ~
+Entry+
+Location+
+Entry:Location+
+Year+
+Year:Entry+
+Year:Location+
+Year:Entry:Location, data=Teenagergrass)
+summary(TQtotal)
+
+#With this code I can get a ANOVA of total TQ with tupe II error(non-rejection of a false null hipothesis "False negative")
+Type.2.error <-Anova(TQtotal)
+Type.2.error
+
+#Sorting by Location
+
+#LW
+SUBLW<-subset(Teenagergrass, Location== 'LW')
+SUBLW
+
+#Cleaning Data
+summary(SUBLW)
+
+LW <- subset(Teenagergrass, select = -c(Establishment, Coverage, Drought))
+LW
+
+summary(LW)
+
+#SH
+SUBSH<-subset(Teenagergrass, Location== 'SH')
+SUBSH
+
+#Cleaning Data
+summary(SUBSH)
+
+SH <- subset(Teenagergrass, select = -c(Flower, WK, FC))
+SH
+
+summary(SH)
+
+#LS
+SUBLS<-subset(Teenagergrass, Location== 'LS')
+SUBLS
+
+#Cleaning Data
+summary(SUBLS)
+
+LS <- subset(Teenagergrass, select = -c(Flower, Weightgrams, Drought,FC ))
+LS
+
+summary(LS)
+
+
+# TQ ANOVA in LW (Just testing)(make sure to leave reps out because they are aleatoric factors)
+#TQLWAnova<-aov(TQ~Year+Entry+Year:Entry, data=LW)
+#summary(TQLWAnova)
+
+
+#aov=analysis of variance and lm= lineal model or lineal regresion 
+
+
+#LSmeans First way.
+ 
+ 
+#LW, TQ
+LWTQ.lm = lm(TQ ~ Year + Entry, data = LW)
+LWTQ<-lsmeans(LWTQ.lm, "Entry")
+LWTQ
+
+LWTQANOVA<-aov(TQ ~ Entry, data=SUBLW)
+summary.aov(LWTQANOVA)
+
+#LW, Weight
+LWWeight.lm = lm(Weightgrams ~ Year + Entry, data = LW)
+LWWeight<-lsmeans(LWWeight.lm, "Entry")
+LWWeight
+
+LWWeightANOVA<-aov(Weightgrams ~ Entry, data=SUBLW)
+summary.aov(LWWeightANOVA)
+
+#LW, Color
+LWColor.lm = lm(Color ~ Year + Entry, data = LW)
+LWColor<-lsmeans(LWColor.lm, "Entry")
+LWColor
+
+LWColorANOVA<-aov(Color ~ Entry, data=SUBLW)
+summary.aov(LWColorANOVA)
+
+
+#SH, TQ
+SHTQ.lm = lm(TQ ~ Year + Entry, data = SH)
+SHTQ<-lsmeans(SHTQ.lm, "Entry")
+SHTQ
+
+SHTQANOVA<-aov(TQ ~ Entry, data=SUBSH)
+summary.aov(SHTQANOVA)
+
+#SH, Drought
+SHDrought.lm = lm(Drought ~ Year + Entry, data = SH)
+SHDrought<-lsmeans(SHDrought.lm, "Entry")
+SHDrought
+
+SHDroughtANOVA<-aov(Drought ~ Entry, data=SUBSH)
+summary.aov(SHDrought)
+
+#SH, Color
+SHColor.lm = lm(Color ~ Year + Entry, data = SH)
+SHColor<-lsmeans(SHColor.lm, "Entry")
+SHColor
+
+SHColorANOVA<-aov(Color ~ Entry, data=SUBSH)
+summary.aov(SHColorANOVA)
+
+
+#LS, TQ
+LSTQ.lm = lm(TQ ~ Year + Entry, data = LS)
+LSTQ<-lsmeans(LSTQ.lm, "Entry")
+LSTQ
+
+LSTQANOVA<-aov(TQ ~ Entry, data=SUBLS)
+summary.aov(LSTQANOVA)
+
+#LS, WK
+LSWK.lm = lm(WK ~ Year + Entry, data = LS)
+LSWK<-lsmeans(LSWK.lm, "Entry")
+LSWK
+
+LSWKANOVA<-aov(WK ~ Entry, data=SUBLS)
+summary.aov(LSWKANOVA)
+
+#LS, Color
+LSColor.lm = lm(Color ~ Year + Entry, data = LS)
+LSColor<-lsmeans(LSColor.lm, "Entry")
+LSColor
+
+LSColorANOVA<-aov(Color ~ Entry, data=SUBLS)
+summary.aov(LSColorANOVA)
+
+#Testing the anova asumptions normality, I could do (homoscedasticity, independance). his is an example for LWTQ ONLY I coud code for the other 9.
+par(mfrow=c(2,2))
+plot(LWTQANOVA)
+par(mfrow=c(1,1))
+Res<-residuals(LWTQANOVA)
+plotNormalHistogram(Res)
+plot(fitted(LWTQANOVA),residuals(LWTQANOVA))
+ggqqplot(Res)
+
+#Histograms of Density of data. Turf Quality in Lake Wheeler ONLY
+ggdensity(LW$TQ, 
+          main = "Density plot of TQ",
+          xlab = "Turf Quality")
+          
+
+#LSMeans separation by letters. Honestly Significant Diffrences Tukey.Converting class group table to a dataframe to be able to join results in one dataframe
+
+
+#LSmeans second 
+
+###LAKE WHEELER
+#1.Turf Quality in Lake Wheeler. LSmean data.frame****
+LWTQ_means<-HSD.test(LWTQANOVA, "Entry", group=TRUE)
+LWTQ_means
+
+LWTQ.means.dataframe<-LWTQ_means[["groups"]]
+as.data.frame(LWTQ.means.dataframe)
+aa<-LWTQ.means.dataframe
+aa
+
+setDT(aa, keep.rownames = TRUE)[]
+names(aa) <- c("Entry", "TQ","groups")
+colnames(aa)
+rownames(aa)
+aa
+
+#Testing for dataframe
+is.data.frame(aa)
+
+#Create a csv document outside R
+write.csv(aa, 'aa.csv')
+
+
+###2.Weight in Lake Wheeler. LSmean data.frame
+LWWeight_means<-HSD.test(LWWeightANOVA, "Entry", group=TRUE)
+LWWeight_means
+
+LWWeight.means.dataframe<-LWWeight_means[["groups"]]
+as.data.frame(LWWeight.means.dataframe)
+ab<-LWWeight.means.dataframe
+ab
+
+setDT(ab, keep.rownames = TRUE)[]
+names(ab) <- c("Entry", "Weight","groups")
+colnames(ab)
+rownames(ab)
+ab
+
+#Testing for dataframe
+is.data.frame(ab)
+
+#Create a csv document outside R
+write.csv(ab, 'ab.csv')
+
+
+#3.Color in Lake Wheeler. LSmean data.frame
+LWColor_means<-HSD.test(LWColorANOVA, "Entry", group=TRUE)
+LWColor_means
+
+LWColor.means.dataframe<-LWColor_means[["groups"]]
+as.data.frame(LWColor.means.dataframe)
+ac<-LWColor.means.dataframe
+ac
+
+setDT(ac, keep.rownames = TRUE)[]
+names(ac) <- c("Entry", "Color","groups")
+colnames(ac)
+rownames(ac)
+ac
+
+#Testing for dataframe
+is.data.frame(ac)
+
+#Create a csv document outside R
+write.csv(ac, 'ac.csv')
+
+
+###SANDHILLS
+#1.Turf Quality in Sandhills. LSmean data.frame
+SHTQ_means<-HSD.test(SHTQANOVA, "Entry", group=TRUE)
+SHTQ_means
+
+SHTQ.means.dataframe<-SHTQ_means[["groups"]]
+as.data.frame(SHTQ.means.dataframe)
+ba<-SHTQ.means.dataframe
+ba
+
+setDT(ba, keep.rownames = TRUE)[]
+names(ba) <- c("Entry", "TQ","groups")
+colnames(ba)
+rownames(ba)
+ba
+
+#Testing for dataframe
+is.data.frame(ba)
+
+#Create a csv document outside R
+write.csv(ba, 'ba.csv')
+
+
+#2.Drought in Sandhills. LSmean data.frame
+SHDrought_means<-HSD.test(SHDroughtANOVA, "Entry", group=TRUE)
+SHDrought_means
+
+SHDrought.means.dataframe<-SHDrought_means[["groups"]]
+as.data.frame(SHDrought.means.dataframe)
+bb<-SHDrought.means.dataframe
+bb
+
+setDT(bb, keep.rownames = TRUE)[]
+names(bb) <- c("Entry", "Drought","groups")
+colnames(bb)
+rownames(bb)
+bb
+
+#Testing for dataframe
+is.data.frame(bb)
+
+#Create a csv document outside R
+write.csv(bb, 'bb.csv')
+
+
+#3.Color in Sandhills. LSmean data.frame
+SHColor_means<-HSD.test(LWColorANOVA, "Entry", group=TRUE)
+SHColor_means
+
+SHColor.means.dataframe<-SHColor_means[["groups"]]
+as.data.frame(SHColor.means.dataframe)
+bc<-SHColor.means.dataframe
+
+setDT(bc, keep.rownames = TRUE)[]
+names(bc) <- c("Entry", "Color","groups")
+colnames(bc)
+rownames(bc)
+bc
+
+#Testing for dataframe
+is.data.frame(bc)
+
+#Create a csv document outside R
+write.csv(bc, 'bc.csv')
+
+
+###LAUREL SPRINGS
+#1.Turf Quality in Laurel Springs. LSmean data.frame
+LSTQ_means<-HSD.test(LSTQANOVA, "Entry", group=TRUE)
+LSTQ_means
+
+LSTQ.means.dataframe<-LSTQ_means[["groups"]]
+as.data.frame(LSTQ.means.dataframe)
+ca<-LSTQ.means.dataframe
+ca
+
+setDT(ca, keep.rownames = TRUE)[]
+names(ca) <- c("Entry", "TQ","groups")
+colnames(ca)
+rownames(ca)
+ca
+
+#Testing for dataframe
+is.data.frame(ca)
+
+#Create a csv document outside R
+write.csv(ca, 'ca.csv')
+
+
+#2.Winter Kill in Laurel Springs. LSmean data.frame
+LSWK_means<-HSD.test(LSWKANOVA, "Entry", group=TRUE)
+LSWK_means
+
+LSWK.means.dataframe<-LSWK_means[["groups"]]
+as.data.frame(LSWK.means.dataframe)
+cb<-LSWK.means.dataframe
+cb
+
+setDT(cb, keep.rownames = TRUE)[]
+names(cb) <- c("Entry", "WK","groups")
+colnames(cb)
+rownames(cb)
+cb
+
+#Testing for dataframe
+is.data.frame(cb)
+
+#Create a csv document outside R
+write.csv(cb, 'cb.csv')
+
+
+#3.Color in Laurel Springs. LSmean data.frame
+LSColor_means<-HSD.test(LSColorANOVA, "Entry", group=TRUE)
+LSColor_means
+
+LSColor.means.dataframe<-LSColor_means[["groups"]]
+as.data.frame(LSColor.means.dataframe)
+cc<-LSColor.means.dataframe
+cc
+
+setDT(cc, keep.rownames = TRUE)[]
+names(cc) <- c("Entry", "Color","groups")
+colnames(cc)
+rownames(cc)
+cc
+
+#Testing for dataframe
+is.data.frame(cc)
+
+#Create a csv document outside R
+write.csv(cc, 'cc.csv')
+
+#CREATING DATAFRAME FOR LAKE WHEELER GRAPHS
+aa
+ab
+ac
+
+# merge three data frames by ID
+ad <- merge(aa,ab,by="Entry")
+ae <- merge(ad,ac,by="Entry")
+ae
+
+LWTotal<- subset(ae, Entry  == 'Covington'|Entry  =='Common' | Entry  =='Tifblair'|Entry  =='Santee'|TQ >7.9)
+LWTotal
+
+
+#CREATING DATAFRAME FOR SANDHILLS GRAPHS
+ba
+bb
+bc
+
+# merge three data frames by ID
+bd <- merge(ba,bb,by="Entry")
+be <- merge(bd,bc,by="Entry")
+be
+
+SHTotal<- subset(be, Entry  == 'Covington'|Entry  =='Common' | Entry  =='Tifblair'|Entry  =='Santee'|TQ >6.5 )
+SHTotal
+
+
+#CREATING DATAFRAME FOR LAUREL SPRINGS
+ca
+cb
+cc
+
+# merge three data frames by ID
+cd <- merge(ca,cb,by="Entry")
+ce <- merge(cd,cc,by="Entry")
+ce
+
+LSTotal<- subset(ce, Entry  == 'Covington'|Entry  =='Common' | Entry  =='Tifblair'|Entry  =='Santee'|TQ >6)
+LSTotal
+
+#Dataframes to be used for Graphs
+LWTotal
+SHTotal
+LSTotal
+
+#GRAPHS
+
+# I used function gplot (x,y) with extention of data clasification
+#Asigned a vector name to facilitate programin for graph astetic
+#scale_color_gradient(low="Brown", high="DarkGreen" this work for color gradient, otherwise it will be blue.
+#Adding main= is important for th emain title of the graph.
+
+#LW
+LWGraph<- qplot(Entry, TQ, data = LWTotal, color = Color, size = Weight, main="2017 CENTIPEDEGRASS ADVANCED TRIAL AT LAKE WHEELER", xlab = "Genotype", ylab = "Turf Quality") +scale_color_gradient(low="Brown", high="DarkGreen")
+LWGraph
+
+#Ajusting letter size color en orientation of legends in the axes
+LWGraph + theme(axis.text.x = element_text(face="plain", color="black", size=10, angle=90),axis.text.y = element_text(face="plain", color="black", size=10, angle=90))
+
+
+#SH
+SHGraph<- qplot(Entry, TQ, data = SHTotal, color = Color, size = Drought, main="2017 CENTIPEDEGRASS ADVANCED TRIAL AT SANDHILLS", xlab = "Genotype", ylab = "Turf Quality") +scale_color_gradient(low="Brown", high="DarkGreen")
+SHGraph
+
+#Ajusting letter size color en orientation of legends in the axes
+SHGraph + theme(axis.text.x = element_text(face="plain", color="black", size=10, angle=90),axis.text.y = element_text(face="plain", color="black", size=10, angle=90))
+
+
+#LS
+LSGraph<- qplot(Entry, TQ, data = LSTotal, color = Color, size = WK, main="2017 CENTIPEDEGRASS ADVANCED TRIAL AT LAUREL SPRINGS", xlab = "Genotype", ylab = "Turf Quality") +scale_color_gradient(low="Brown", high="DarkGreen")
+LSGraph
+
+#Ajusting letter size color en orientation of legends in the axes
+LSGraph + theme(axis.text.x = element_text(face="plain", color="black", size=10, angle=90),axis.text.y = element_text(face="plain", color="black", size=10, angle=90))
+
+
